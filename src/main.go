@@ -2,67 +2,64 @@ package main
 
 import (
 	"log"
-	"net/http"
+	//"net/http"
+	"fmt"
 
-	tgbotapi "github.com/Syfaro/telegram-bot-api"
+	"github.com/1cergey/MatchBot/config"
+
+	"github.com/joho/godotenv"
+	//tgbotapi "gopkg.in/telegram-bot-api.v5"
 )
 
+func init() {
+	if err := godotenv.Load(); err != nil {
+		log.Print("Не найдены файлы c расширением .env")
+	}
+}
+
 func main() {
-	//proxyStr := "socks5://81.17.20.50:34916"
-	//proxyURL, err := url.Parse(proxyStr)
+	cfg := config.New()
+	fmt.Print(cfg.TelegramToken)
+	return
 
-	//if err != nil {
-	//	log.Println(err)
-	//}
+	// client := &http.Client{}
+	// token :=
+	// bot, err := tgbotapi.NewBotAPIWithClient(token, tgbotapi.APIEndpoint, client)
+	// //	bot, err := tgbotapi.NewBotAPI("1213192600:AAEUiACF-DSiJAmsvvj_dZ30_3iVXrTFaMo")
 
-	//adding the proxy settings to the Transport object
-	//transport := &http.Transport{
-	//	Proxy: http.ProxyURL(proxyURL),
-	//}
+	// if err != nil {
+	// 	log.Panic(err)
+	// }
 
-	//	client := &http.Client{
-	//		Transport: transport,
-	//	}
-	//client.SetProxy("37.221.66.102:24531")
+	// bot.Debug = true
+	// log.Printf("Autorized: %s", bot.Self.UserName)
 
-	client := &http.Client{}
-	token := "1213192600:AAEUiACF-DSiJAmsvvj_dZ30_3iVXrTFaMo"
-	bot, err := tgbotapi.NewBotAPIWithClient(token, tgbotapi.APIEndpoint, client)
-	//	bot, err := tgbotapi.NewBotAPI("1213192600:AAEUiACF-DSiJAmsvvj_dZ30_3iVXrTFaMo")
+	// var ucfg tgbotapi.UpdateConfig = tgbotapi.NewUpdate(0)
 
-	if err != nil {
-		log.Panic(err)
-	}
+	// ucfg.Timeout = 60
 
-	bot.Debug = true
-	log.Printf("Autorized: %s", bot.Self.UserName)
+	// updates, err := bot.GetUpdatesChan(ucfg)
 
-	var ucfg tgbotapi.UpdateConfig = tgbotapi.NewUpdate(0)
+	// for update := range updates {
+	// 	if update.Message == nil { // ignore any non-Message Updates
+	// 		continue
+	// 	}
 
-	ucfg.Timeout = 60
+	// 	/*if (update.Message.Text == "Stop") {
+	// 		break
+	// 	} */
 
-	updates, err := bot.GetUpdatesChan(ucfg)
+	// 	UserName := update.Message.From.UserName
+	// 	ChatID := update.Message.Chat.ID
+	// 	Text := update.Message.Text
 
-	for update := range updates {
-		if update.Message == nil { // ignore any non-Message Updates
-			continue
-		}
+	// 	log.Printf("[%s] %d %s", UserName, ChatID, Text)
 
-		/*if (update.Message.Text == "Stop") {
-			break
-		} */
+	// 	reply := Text
 
-		UserName := update.Message.From.UserName
-		ChatID := update.Message.Chat.ID
-		Text := update.Message.Text
+	// 	msg := tgbotapi.NewMessage(ChatID, reply)
+	// 	msg.ReplyToMessageID = update.Message.MessageID
 
-		log.Printf("[%s] %d %s", UserName, ChatID, Text)
-
-		reply := Text
-
-		msg := tgbotapi.NewMessage(ChatID, reply)
-		msg.ReplyToMessageID = update.Message.MessageID
-
-		bot.Send(msg)
-	}
+	// 	bot.Send(msg)
+	// }
 }
