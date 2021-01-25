@@ -6,11 +6,15 @@ import (
 
 type Config struct {
 	TelegramToken string
+	WebHookURL    string
+	Port          string
 }
 
 func New() *Config {
 	return &Config{
 		TelegramToken: getEnv("telegramToken", ""),
+		WebHookURL:    getEnv("webHookURL", ""),
+		Port:          getEnv("port", ""),
 	}
 }
 
