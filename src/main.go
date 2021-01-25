@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/1cergey/MatchBot/config"
 
@@ -27,16 +26,9 @@ func main() {
 	}
 	fmt.Println("Autorized on account", bot.Self.UserName)
 
-	_, err = bot.SetWebhook(tgbotapi.NewWebhook(cfg.WebHookURL))
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("Connected on webhook", cfg.WebHookURL)
-
-	updates := bot.ListenForWebhook("/")
-
-	go http.ListenAndServe(":8080", nil)
-	fmt.Println("Stert listen :8080")
+	u := tgbotapi.NewUpdate(0)
+	u.Timeout = 60
+	updates, err := bot.GetUpdatesChan(u)
 
 	for update := range updates {
 		bot.Send(tgbotapi.NewMessage(
