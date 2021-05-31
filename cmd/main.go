@@ -1,17 +1,16 @@
 package main
 
 import (
+	"MatchBot/db"
+	"MatchBot/internal"
 	"fmt"
 	"log"
-	"MatchBot/internal"
-	"MatchBot/db"
 
 	cfg "MatchBot/config"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/joho/godotenv"
 )
-
 
 func init() {
 	if err := godotenv.Load(); err != nil {
@@ -23,8 +22,6 @@ func init() {
 }
 
 func main() {
-	//инициализации переменных окружения
-	cfg.Init()
 
 	bot, err := tgbotapi.NewBotAPI(cfg.TelegramToken)
 	if err != nil {
@@ -43,7 +40,7 @@ func main() {
 	for update := range updates {
 		if update.Message == nil {
 			continue
-		}		
+		}
 		internal.MessageHandler(update, bot)
 	}
 

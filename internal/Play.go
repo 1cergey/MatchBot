@@ -1,80 +1,73 @@
 package internal
 
 import (
+	"MatchBot/db"
+	"MatchBot/types"
 	"fmt"
 	"strings"
-	"MatchBot/types"
-	"MatchBot/db"
-	
 )
 
-type Play struct {
-	ChatID int64
-	Players []types.Player
-}
+var playList map[int64]types.Play = make(map[int64]types.Play)
 
-
-func (p *Play) addNewPlayer(player *types.Player) {
-	// db_value = types.Player{}
-    // err = db.Get(&db_value, "SELECT * FROM users WHERE username=$1", player.UserName)
-	// if usrExist {
-	// 	return
-	// } 
-	
-	err:=db.CreateNewUser(*player,p.ChatID)
-	if err != nil   {
+func AddPlayer(p *types.Play, player *types.Player) {
+	err := db.CreateNewUser(*player, p.ChatID)
+	if err != nil {
 		println(err)
 		return
 	}
-	
-	players:= db.GetPlayers(p.ChatID)
-  	// p.Players = append(p.Players, players...)
-	p.Players = players  
+
+	refreshPlayers(p)
 }
 
-func (p *Play) delPlayer(player types.Player) {
-	// _, usrExist := p.Players[player.UserName]
-	// if !usrExist {
-	// 	return
-	// }
-	db.DeleteUser(player,p.ChatID) 
-	//delete(p.Players,player.UserName)
-	players:= db.GetPlayers(p.ChatID)
-  	// p.Players = append(p.Players, players...)
-	p.Players = players  
-
+func DelPlayer(p *types.Play, player *types.Player) {
+	db.DeleteUser(*player, p.ChatID)
+	refreshPlayers(p)
 }
 
-func (p *Play) GetListTeam() string {
-	listTeam:= make([]string, 0, len(p.Players))
+func refreshPlayers(p *types.Play) {
+	p.Players = db.GetPlayers(p.ChatID)
+}
+
+func GetListTeam(p *types.Play) string {
+	listTeam := make([]string, 0, len(p.Players))
 	listTeam = append(listTeam, "Состав:")
 
-	counter:=0
+	counter := 0
 	fmt.Println(p.Players)
 	for _, val := range p.Players {
 		counter++
-		firstName:= val.FirstName
-		if (firstName=="") {
+		firstName := val.FirstName
+		if firstName == "" {
 			firstName = val.UserName
 		}
-		value:= fmt.Sprintf("%d %s",counter,firstName)
+		value := fmt.Sprintf("%d %s", counter, firstName)
 		listTeam = append(listTeam, value)
 	}
 	result := strings.Join(listTeam, "\n")
 	return result
 }
-func CreatePlay() Play {
-	var play Play = Play{}   
-	return play
-}
-
-func GetPlay(chatID int64) Play {
-	var CurentPlay Play = Play{
-		ChatID: chatID,
+func CreatePlay(chatID int64) types.Play {
+	return types.Play{
+		ChatID:  chatID,
 		Players: []types.Player{},
 	}
+}
 
-	players:= db.GetPlayers(chatID)
-  	CurentPlay.Players = append(CurentPlay.Players, players...)
-	return CurentPlay
+func ClosePlay(chatID int64) {
+	db.ClearPlayData(chatID)
+	_, valExist := playList[chatID]
+	if valExist {
+		delete(playList, chatID)
+	}
+}
+
+func GetPlay(chatID int64) types.Play {
+	curentPlay, valExist := playList[chatID]
+	if !valExist {
+		curentPlay = CreatePlay(chatID)
+		playList[chatID] = curentPlay
+	}
+
+	curentPlay.Players = append(curentPlay.Players, db.GetPlayers(chatID)...)
+	return curentPlay
 }

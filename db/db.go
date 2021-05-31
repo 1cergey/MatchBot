@@ -1,16 +1,17 @@
 package db
 
 import (
-	"fmt"
-	"MatchBot/types"
 	cfg "MatchBot/config"
+	"MatchBot/types"
+	"fmt"
+
+	"strconv"
+	"time"
 
 	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-	"strconv"
-	"time"
 )
 
 var db *sqlx.DB
@@ -18,11 +19,11 @@ var db *sqlx.DB
 func Connect() {
 	port, _ := strconv.ParseUint(cfg.DB_Port, 10, 16)
 	connConfig := pgx.ConnConfig{
-		Host:     cfg.DB_Host,
-		Port:     uint16(port),
-		Database: cfg.DB_Name,
-		User:     cfg.DB_User,
-		Password: cfg.DB_Pass,
+		Host:                 cfg.DB_Host,
+		Port:                 uint16(port),
+		Database:             cfg.DB_Name,
+		User:                 cfg.DB_User,
+		Password:             cfg.DB_Pass,
 		PreferSimpleProtocol: false,
 	}
 	fmt.Println(connConfig)
@@ -30,7 +31,7 @@ func Connect() {
 		ConnConfig:     connConfig,
 		MaxConnections: 100,
 		AcquireTimeout: 600 * time.Second,
-		AfterConnect: nil,
+		AfterConnect:   nil,
 	})
 
 	if err != nil {
@@ -49,8 +50,6 @@ func CreateNewUser(user types.Player, chatId int64) error {
 	if err != nil {
 		return errors.Wrapf(err, "error when create tx in CreateNewUser")
 	}
-	// fmt.Println(user)
-	// fmt.Println(chatId)
 
 	_, err = tx.Exec(
 		"INSERT INTO users (chat_id, first_name, last_name, username) VALUES ($1, $2, $3, $4)",
@@ -96,15 +95,14 @@ func DeleteUser(user types.Player, chatId int64) error {
 	return nil
 }
 
-func GetPlayers(chatID int64) ([]types.Player) {
+func GetPlayers(chatID int64) []types.Player {
 	players := []types.Player{}
-	db.Select(&players, "SELECT username, first_name, last_name  FROM users WHERE chat_id = $1",chatID)
-	fmt.Println(players)
+	db.Select(&players, "SELECT username, first_name, last_name  FROM users WHERE chat_id = $1", chatID)
 
 	return players
 }
 
-func ClearPlayers(chatId int64) error {
+func ClearPlayData(chatId int64) error {
 	tx, err := db.Begin()
 
 	if err != nil {
