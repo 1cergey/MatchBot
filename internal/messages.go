@@ -3,6 +3,8 @@ package internal
 import (
 	"MatchBot/types"
 	"fmt"
+	"log"
+	"strconv"
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -31,19 +33,20 @@ func MessageHandler(u tgbotapi.Update, bot *tgbotapi.BotAPI) {
 	case len(msgWords) == 1 && strings.EqualFold(msgWords[0], "Состав"):
 		replyText = GetListTeam(&currentPlay)
 	case len(msgWords) == 1 && msgWords[0] == "+":
-		player := types.Player{UserName: usr.UserName, FirstName: usr.FirstName, LastName: usr.LastName}
-		AddPlayer(&currentPlay, &player)
-		replyText = GetListTeam(&currentPlay)
-	case len(msgWords) == 2 && msgWords[0] == "+":
-		player := types.Player{UserName: msgWords[1], FirstName: msgWords[1]}
+		log.Printf("player %v",usr)
+		player := types.Player{UserID: strconv.Itoa(usr.ID), UserName: usr.UserName, FirstName: usr.FirstName, LastName: usr.LastName}
 		AddPlayer(&currentPlay, &player)
 		replyText = GetListTeam(&currentPlay)
 	case len(msgWords) == 1 && msgWords[0] == "-":
-		player := types.Player{UserName: usr.UserName}
+		player := types.Player{UserID: strconv.Itoa(usr.ID),UserName: usr.UserName,FirstName: usr.FirstName, LastName: usr.LastName}
 		DelPlayer(&currentPlay, &player)
 		replyText = GetListTeam(&currentPlay)
+	case len(msgWords) == 2 && msgWords[0] == "+":
+		player := types.Player{UserID:msgWords[1], FirstName: msgWords[1]}
+		AddPlayer(&currentPlay, &player)
+		replyText = GetListTeam(&currentPlay)
 	case len(msgWords) == 2 && msgWords[0] == "-":
-		player := types.Player{UserName: msgWords[1]}
+		player := types.Player{UserID:msgWords[1],FirstName: msgWords[1]}
 		DelPlayer(&currentPlay, &player)
 		replyText = GetListTeam(&currentPlay)
 	}

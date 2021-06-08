@@ -4,6 +4,7 @@ import (
 	"MatchBot/db"
 	"MatchBot/types"
 	"fmt"
+	"log"
 	"strings"
 )
 
@@ -47,6 +48,7 @@ func GetListTeam(p *types.Play) string {
 	return result
 }
 func CreatePlay(chatID int64) types.Play {
+	log.Printf("Created new play, chatID = %d",chatID)
 	return types.Play{
 		ChatID:  chatID,
 		Players: []types.Player{},

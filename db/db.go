@@ -4,7 +4,7 @@ import (
 	cfg "MatchBot/config"
 	"MatchBot/types"
 	"fmt"
-
+	"log"
 	"strconv"
 	"time"
 
@@ -45,15 +45,21 @@ func Connect() {
 }
 
 func CreateNewUser(user types.Player, chatId int64) error {
+	log.Printf("Start creating new user, chatID = %d\n %v\n", chatId, user)
+
 	tx, err := db.Begin()
 
 	if err != nil {
 		return errors.Wrapf(err, "error when create tx in CreateNewUser")
 	}
 
+	if UserExist(user, chatId) {
+		return nil
+	}
+
 	_, err = tx.Exec(
-		"INSERT INTO users (chat_id, first_name, last_name, username) VALUES ($1, $2, $3, $4)",
-		chatId, user.FirstName, user.LastName, user.UserName)
+		"INSERT INTO users (chat_id, user_id, first_name, last_name, username) VALUES ($1, $2, $3, $4, $5)",
+		chatId, user.UserID,user.FirstName, user.LastName, user.UserName)
 	if err != nil {
 		trErr := tx.Rollback()
 		if trErr != nil {
@@ -66,11 +72,16 @@ func CreateNewUser(user types.Player, chatId int64) error {
 	if err != nil {
 		return errors.Wrapf(err, " error when commit tx on create user")
 	}
+	log.Printf("Created user %v\n",user)
 
 	return nil
 }
 
 func DeleteUser(user types.Player, chatId int64) error {
+	if !UserExist(user, chatId) {
+		return nil
+	}
+
 	tx, err := db.Begin()
 
 	if err != nil {
@@ -78,7 +89,7 @@ func DeleteUser(user types.Player, chatId int64) error {
 	}
 
 	_, err = tx.Exec(
-		"DELETE FROM users WHERE chat_id = $1 and username = $2", chatId, user.UserName)
+		"DELETE FROM users WHERE chat_id = $1 and user_id = $2", chatId, user.UserID)
 	if err != nil {
 		trErr := tx.Rollback()
 		if trErr != nil {
@@ -98,6 +109,7 @@ func DeleteUser(user types.Player, chatId int64) error {
 func GetPlayers(chatID int64) []types.Player {
 	players := []types.Player{}
 	db.Select(&players, "SELECT username, first_name, last_name  FROM users WHERE chat_id = $1", chatID)
+	log.Printf("Got players, chatID = %d\n players %v\n",chatID,players)
 
 	return players
 }
@@ -123,8 +135,12 @@ func ClearPlayData(chatId int64) error {
 	return nil
 }
 
-func CheckUser(id int) error {
-	var userId int
-	err := db.Get(&userId, "SELECT id FROM users WHERE id = $1;", id)
-	return err
+func UserExist(user types.Player, chatId int64) bool {
+	err:= db.Get(&user.UserID, "SELECT user_id FROM users WHERE chat_id=$1 and user_id = $2;", chatId,user.UserID)
+	if err!=nil {
+		log.Printf("UserExist query error %v\n",err)
+	}
+	userExist:= err==nil
+	log.Printf("userExist %b",userExist)
+	return userExist
 }
